@@ -1,2 +1,3 @@
 # TP2_PensamientoComputacional
-Trabajo Practico 2
+from pillow import Image.open
+import NumPy
