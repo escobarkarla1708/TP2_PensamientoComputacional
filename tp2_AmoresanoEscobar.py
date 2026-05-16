@@ -1,44 +1,6 @@
 from PIL import Image
 import numpy as np
 import os
-
-PALETA = "$@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\|()1{}[]?-_+~<>i!lI;:,\"^`'. "
-
-def validar_ruta_salida(extension):
-    """
-    Pide la ruta de salida en un bucle hasta que sea válida.
-    Maneja extensiones y autonumeración si el archivo ya existe.
-    """
-    while True:
-        ruta = input(f"Seleccione el nombre o ruta de salida (.{extension}): ").strip()
-        
-        # Validamos que no esté vacío
-        if not ruta:
-            print("Error: El nombre del archivo no puede estar vacío.")
-            continue  # Vuelve a preguntar
-        
-        # Aseguramos extensión antes de validar el directorio
-        if not ruta.lower().endswith(extension):
-            ruta += extension
-            
-        # Validamos que la carpeta exista
-        directorio = os.path.dirname(ruta)
-        # Si el directorio no es vacío y no existe, hay error
-        if directorio != "" and not os.path.isdir(directorio):
-            print(f"Error: La carpeta '{directorio}' no existe. Intente otra ruta.")
-            continue  # Vuelve a preguntar
-        
-        # Si ya existe, lo nombramos con numeración automática
-        if os.path.exists(ruta):
-            # Separamos nombre de extensión (ej: 'resultado' y '.png')
-            nombre, ext = os.path.splitext(ruta)
-            i = 1
-            while os.path.exists(f"{nombre}({i}){ext}"):
-                i += 1
-            ruta = f"{nombre}({i}){ext}"
-            print(f"Aviso: El archivo ya existía. Se renombró automáticamente a: {ruta}")
-        
-        return ruta
     
 def pixel_art(imagen: Image.Image, tam_bloque: int, niveles_color: int) -> Image.Image:
     """
@@ -53,30 +15,31 @@ def pixel_art(imagen: Image.Image, tam_bloque: int, niveles_color: int) -> Image
     Return:
         Image.Image: Una nueva imagen con el efecto de Pixel Art aplicado.
     """
-    # Convertimos a RGB para procesar colores
+    # Convertimos la imagen a una cuadricula de píxeles RGB para procesarla (filas y columnas de color)
     cuadricula = np.array(imagen.convert('RGB'))
     alto, ancho, canales_RGB = cuadricula.shape
-    resultado = cuadricula.copy()
+    resultado = cuadricula.copy() # Creamos una copia para no modificar la imagen original 
 
+    # Recorremos la cuadricula saltando de bloque en bloque
     for y in range(0, alto, tam_bloque):
         for x in range(0, ancho, tam_bloque):
-            # Recorte del bloque actual
+            # Cuadricula del bloque actual
             bloque = cuadricula[y : y + tam_bloque, x : x + tam_bloque]
+
             if bloque.size == 0: 
                 continue
-            
-            # Promedio de color y pintar del color predominante
+            # Obtenemos el color promedio del bloque
             color_promedio = bloque.mean(axis=(0, 1))
+            # Calculamos la distancia entre los niveles de color permitidos
             distancia_tonos = 255 // (niveles_color - 1)
-            color_predominante = np.round(color_promedio / distancia_tonos) * distancia_tonos
-            
-            # Aplicar color al bloque
+            # Asignamos el color predominante al bloque redondeando el color promedio al nivel de color más cercano
+            color_predominante = np.round(color_promedio / distancia_tonos) * distancia_tonos 
             resultado[y : y + tam_bloque, x : x + tam_bloque] = color_predominante
 
-    # convertimos a uint8 para evitar problemas de tipo al crear la imagen final
-    # Convertimos los números decimales a enteros de 8 bits (0-255)
-    resultado_final = resultado.astype('uint8')
-    # Creamos la imagen final a partir de la cuadricula resultante
+    # Convertimos los números decimales a enteros sin signos de 8 bits (0-255) para evitar problemas de tipo al crear la imagen final
+    resultado_final = resultado.astype(np.uint8)
+
+    # Convertimos nuestra cuadrícula de números procesados en una imagen real de Pillow 
     imagen_pixel_art = Image.fromarray(resultado_final)
 
     return imagen_pixel_art
@@ -95,32 +58,168 @@ def ascii_art(imagen: Image.Image, ancho_ascii: int = 100) -> str:
     Return:
         str: Cadena de texto con saltos de línea que forma la imagen en ASCII.
     """
-    # Convertimos a escala de grises para procesar intensidad
+    # Paleta de caracteres ordenados de mayor a menor densidad visual (más oscuro a más claro)
+    caracteres_ascii = "$@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\\|()1{}[]?-_+~<>i!lI;:,\"^`'. "
+
+    # Convertimos a escala de grises (L=luminancia) para obtener la intensidad de cada píxel
     imagen_gris = imagen.convert('L')
     ancho_original, alto_original = imagen_gris.size
+
+    # Ajustamos la proporcion de la imagen para que no se vea distorsionada al convertir a ASCII, ya que los caracteres no son cuadrados
     proporcion = alto_original / ancho_original
-    alto_ascii = int(ancho_ascii * proporcion) #ver eso del *0.55
+    alto_ascii = int(ancho_ascii * proporcion * 0.5) # El numero 0.5 corrige la proporción de caracteres (porque sino la imagen quedaría muy alargada)
     
     # Redimensionamos la imagen para que se ajuste al ancho deseado
     imagen_redimensionada = imagen_gris.resize((ancho_ascii, alto_ascii))
         
-    # Mapeamos cada intensidad a un carácter ASCII
-    caracteres_ascii = "$@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\|()1{}[]?-_+~<>i!lI;:,\"^`'. "
+    # Mapeamos 0-255 a los caracteres ASCII, dividiendo el rango de intensidad por la cantidad de caracteres disponibles
     div = 256 / len(caracteres_ascii)
 
     # Convertimos la imagen redimensionada a una cuadricula de píxeles
     pixeles = np.array(imagen_redimensionada)
-    lineas_ascii = []    
-    # Por cada píxel, buscamos qué carácter le corresponde según su brillo
+    lineas_ascii = []  
+
+    # Para cada fila, convertimos cada pixel en su caracter correspondiente
     for fila in pixeles:
         linea = "".join(caracteres_ascii[int(pixel / div)] for pixel in fila)
         lineas_ascii.append(linea)
+    
+    # Unimos todas las líneas con saltos de línea para formar la imagen ASCII completa.
+    imagen_ascii = "\n".join(lineas_ascii)
+    return imagen_ascii
 
-    return "\n".join(lineas_ascii)
+def pedir_metodo()-> str:
+    """
+    Solicita al usuario elegir entre el efecto Pixel Art o ASCII Art.
+    
+    Utiliza un bucle infinito para garantizar que el usuario solo pueda avanzar 
+    si ingresa una de las dos opciones válidas, evitando errores en las 
+    etapas posteriores del procesamiento.
+
+    Returns:
+        str: El método seleccionado convertido a minúsculas ('pixel' o 'ascii').
+    """
+    while True:
+        metodo = input("Seleccione el método (pixel/ascii): ").lower().strip()
+        if metodo not in ["pixel", "ascii"]:
+            print("Método no reconocido. Por favor, seleccione 'pixel' o 'ascii'.")
+        else:
+            break
+    return metodo
+
+def pedir_numero(mensaje: str, tipo: int, valor_default: int) -> int:
+    """
+    Solicita un número al usuario y valida que sea un entero positivo.
+    
+    Si el usuario deja la entrada vacía o ingresa un valor no válido 
+    (letras, símbolos o números negativos), la función devuelve un 
+    valor predeterminado para asegurar que el programa continúe.
+
+    Argumentos:
+        mensaje (str): El texto que se mostrará al usuario solicitando el dato.
+        tipo (int): 1 para tamaño de bloque y ancho ASCII, 2 para niveles de color, 3 para ancho ASCII; para verificar los valores minimos y maximos de cada variable.
+        valor_default (int): El número que se usará si la entrada es inválida.
+
+    Returns:
+        int: El número ingresado por el usuario o, en su defecto, el valor predeterminado.
+    """    
+    
+    # Se recibe la entrada del usuario y se valida
+    entrada = input(f"{mensaje} (default={valor_default}): ").strip()
+    
+    # Si el usuario no ingresa nada, se devuelve el valor por defecto
+    if entrada == "":
+        print(f"Usando valor por defecto: {valor_default}")
+        return valor_default
+    
+    # Si la entrada es un número entero positivo, se devuelve ese numero ingresado
+    if entrada.isdigit():
+        if tipo == 1 and int(entrada) > 0:
+            return int(entrada)
+        if tipo == 2 and int(entrada) > 1 and int(entrada) <= 256:
+            return int(entrada)
+        if tipo == 3 and int(entrada) > 0 and int(entrada) <= 1000: # Limite superior para evitar problemas de rendimiento al generar ASCII Art muy ancho
+            return int(entrada)
+
+    # Si la entrada no es válida, se muestra un mensaje y se devuelve el valor por defecto
+    print(f"Valor no válido. Usando defecto: {valor_default}")
+    return valor_default
+
+def ruta_salida_valida(extension: str) -> str:
+    """
+    Solicita al usuario una ruta de guardado y valida que sea factible.
+    
+    Asegura que el nombre no esté vacío, que la extensión sea correcta y que 
+    la carpeta de destino exista. Si el archivo ya existe, añade un número 
+    automáticamente para evitar sobrescribir datos.
+
+    Argumentos:
+        extension_requerida (str): La extensión que debe tener el archivo (ej: '.png' o '.txt').
+
+    Returns:
+        str: Una ruta de archivo válida y verificada.
+    """
+
+    # El bucle se mientras la ruta ingresada no sea válida
+    while True:
+        # Se solicita la ruta de salida al usuario
+        ruta = input(f"Seleccione el nombre o ruta de salida ({extension}): ").strip()
+        
+        # Validamos que no esté vacío
+        if not ruta:
+            print("Error: El nombre del archivo no puede estar vacío.")
+            continue  # Si esta vacio, vuelve a preguntar por la ruta hasta que no lo esté
+        
+        # Aseguramos que la ruta tenga la extensión correcta, si no la tiene, se la añadimos
+        if not ruta.lower().endswith(extension):
+            ruta += extension
+            
+        # Validamos que la carpeta exista
+        directorio = os.path.dirname(ruta)
+        # Si el directorio no es vacío y no existe, mostramos un error y volvemos a preguntar por la ruta
+        if directorio != "" and not os.path.isdir(directorio):
+            print(f"Error: La carpeta '{directorio}' no existe. Intente otra ruta.")
+            continue
+        
+        # Verificamos si la ruta ingresada ya existe.
+        if os.path.exists(ruta):
+            # Separamos nombre de extensión para poder modificar el nombre sin cambiar la extensión
+            nombre, ext = os.path.splitext(ruta)
+            i = 1
+            # Se añade un número entre paréntesis al nombre para evitar sobrescribirlo, y se incrementa el número hasta encontrar una ruta que no exista
+            while os.path.exists(f"{nombre}({i}){ext}"):
+                i += 1
+            ruta = f"{nombre}({i}){ext}"
+            print(f"Aviso: El archivo ya existía. Se renombró automáticamente a: {ruta}")
+        
+        return ruta
 
 def guardar_ascii_art(ascii_art: str, ruta_salida: str): 
     with open(ruta_salida, 'w') as f:
         f.write(ascii_art)
+
+#agregar docstrings y comentarios a metodos 
+#y corregir algunos docstrings
+def metodo_pixel(imagen: Image.Image):
+    tam_bloque = pedir_numero("Ingrese el tamaño del bloque", 1, 10)
+    niveles_color = pedir_numero("Ingrese los niveles de color", 2, 4)
+
+    resultado = pixel_art(imagen, tam_bloque, niveles_color)
+
+    ruta_salida = ruta_salida_valida(".png")
+    if ruta_salida:
+        resultado.save(ruta_salida)
+        print(f"Imagen guardada en: {ruta_salida}")
+
+def metodo_ascii(imagen: Image.Image):
+    ancho_ascii = pedir_numero("Ingrese el ancho ASCII [1-1000]", 3, 100)
+
+    resultado = ascii_art(imagen, ancho_ascii)
+    
+    ruta_salida = ruta_salida_valida(".txt")
+    if ruta_salida:
+        guardar_ascii_art(resultado, ruta_salida)
+        print(f"Archivo guardado en: {ruta_salida}")
 
 def main():
     try:
@@ -134,107 +233,17 @@ def main():
         except Exception as e:
             print(f"Error al abrir la imagen: {e}")
             return
-
-        metodo = input("Seleccione el método (pixel/ascii): ").lower().strip()
-        if metodo not in ["pixel", "ascii"]:
-            print("Método no válido. Por favor, seleccione 'pixel' o 'ascii'.")
-            return
         
-        # TODO: Convertir metodos en def
+        metodo = pedir_metodo()
+
         if metodo == "pixel":
-            #Validando el tamaño del bloque.
-            tam_bloque_ingresado = input("Ingrese el tamaño del bloque (default=10): ").strip()
-            if tam_bloque_ingresado == "": 
-                #El usuario no ingresó nada o solo espacios, se asigna el valor por defecto
-                tam_bloque = 10
-                print("Usando tamaño de bloque por default: 10")
-            elif tam_bloque_ingresado.isdigit() and int(tam_bloque_ingresado) > 0: 
-                #El usuario ingresó un número, se asigna ese valor
-                tam_bloque = int(tam_bloque_ingresado)
-            else:
-                #El usuario ingresó un valor no válido, se asigna el valor por defecto
-                print("Tamaño de bloque no válido, debe ser un número positivo. Usando tamaño por default de 10.")
-                tam_bloque = 10
-                #return?
+            metodo_pixel(imagen)
 
-            #Validando el número de niveles de color
-            niveles_color_ingresado = input("Ingrese el número de niveles de color (default=4): ").strip()
-            if niveles_color_ingresado == "": 
-                #El usuario no ingresó nada o solo espacios, se asigna el valor por defecto
-                niveles_color = 4
-                print("Usando niveles de color por defecto: 4")
-            elif niveles_color_ingresado.isdigit() and int(niveles_color_ingresado) > 0: 
-                #El usuario ingresó un número, se asigna ese valor
-                niveles_color = int(niveles_color_ingresado)
-            else:
-                #El usuario ingresó un valor no válido, se asigna el valor por defecto
-                print("Número de niveles de color no válido, debe ser un número positivo. Usando niveles por default de 4.")
-                niveles_color = 4
-                #return?
-
-            # TODO: hacer la funcion pixel
-            resultado_pixel = pixel_art(imagen, tam_bloque, niveles_color)
-
-            #Seleccionar ruta de salida de imagen editada.
-            ruta_salida = input("Seleccione la ruta para guardar la imagen procesada: ").strip()
-            if ruta_salida == "":
-                print("Debe ingresar una ruta de salida.")
-                return
-            
-            # Extraemos solo la parte de las carpetas
-            directorio = os.path.dirname(ruta_salida)
-            # Verificamos si esa carpeta existe
-            if directorio != "" and not os.path.isdir(directorio):
-                print(f"Error: La carpeta '{directorio}' no existe en tu computadora.")
-                return
-            if not ruta_salida.lower().endswith(".png"):
-                ruta_salida += ".png"
-            
-            # if os.path.exists(ruta_salida):
-            #     print("El nombre del archivo ya existe.")
-            #     ruta_salida+="(1)"
-            """PREGUNTAR"""
-
-            resultado_pixel.save(ruta_salida)
-            print(f"Imagen editada guardada en: {ruta_salida}")
-        
         elif metodo == "ascii":
-            # Validamos (...)
-            ancho_ingresado = input("Ingrese el ancho de la imagen ASCII (default=100): ").strip()
-            if ancho_ingresado == "": 
-                #El usuario no ingresó nada o solo espacios, se asigna el valor por defecto
-                ancho_ascii = 100
-                print("Usando ancho de la imagen por default: 100")
-            elif ancho_ingresado.isdigit() and int(ancho_ingresado) > 0: 
-                #El usuario ingresó un número, se asigna ese valor
-                ancho_ascii = int(ancho_ingresado)
-            else:
-                #El usuario ingresó un valor no válido, se asigna el valor por defecto
-                print("El ancho de la imagen ASCII debe ser un número positivo. Usando valor por default de 100.")
-                ancho_ascii = 100
-                #return?
-            
-            resultado_ascii = ascii_art(imagen, ancho_ascii)
-
-            ruta_salida = input("Seleccione la ruta para guardar el resultado: ").strip()
-            if ruta_salida == "":
-                print("Debe ingresar una ruta de salida.")
-                return
-            # Extraemos solo la parte de las carpetas
-            directorio = os.path.dirname(ruta_salida)
-            # Verificamos si esa carpeta existe
-            if directorio != "" and not os.path.isdir(directorio):
-                print(f"Error: La carpeta '{directorio}' no existe en tu computadora.")
-                return
-            if not ruta_salida.lower().endswith(".txt"):
-                ruta_salida += ".txt"
-            # if os.path.exists(ruta_salida):
-            #     print("El nombre del archivo ya existe.")
-            #     ruta_salida+="(1)"
-            """PREGUNTAR"""
-
-            guardar_ascii_art(resultado_ascii, ruta_salida)
-            print(f"Archivo ASCII guardado en: {ruta_salida}")
+            metodo_ascii(imagen)
 
     except Exception as e:
         print(f"Ocurrió un error inesperado: {e}")
+
+if __name__ == "__main__":
+    main()
