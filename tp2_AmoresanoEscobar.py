@@ -200,6 +200,7 @@ def guardar_ascii_art(ascii_art: str, ruta_salida: str):
 
 #agregar docstrings y comentarios a metodos 
 #y corregir algunos docstrings
+# cambios para realizar commits:
 def metodo_pixel(imagen: Image.Image):
     tam_bloque = pedir_numero("Ingrese el tamaño del bloque", 1, 10)
     niveles_color = pedir_numero("Ingrese los niveles de color", 2, 4)
