@@ -1,4 +1,5 @@
-# README — Conversor de Imágenes a Pixel Art y ASCII Art
+# Trabajo Práctico 2 — Estilización de Imágenes Digitales
+# Conversor de Imágenes a Pixel Art y ASCII Art
 ## Descripción general del trabajo
 
 Este trabajo consiste en el desarrollo de un programa en Python capaz de transformar imágenes digitales en dos estilos artísticos diferentes: Pixel Art y ASCII Art. Para ello, se utilizan herramientas de procesamiento de imágenes y manipulación de matrices mediante las librerías Pillow y NumPy.
