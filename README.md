@@ -74,6 +74,8 @@ Ingrese el tamaño del bloque: 10
 Ingrese el número de niveles de color: 4
 
 *Resultado:* 
+
+<img width="330" height="492" alt="monalisa" src="https://github.com/user-attachments/assets/24d911ce-0504-4294-975b-71ef0b8ce04d" /> <img width="330" height="492" alt="monalisa jpg" src="https://github.com/user-attachments/assets/505dda87-19cd-4b1a-bbba-e3f35edbccd2" />
 - Imagen procesada en formato PNG.
 
 ### Ejemplo ASCII Art:
@@ -83,6 +85,9 @@ Seleccione el método (pixel/ascii): ascii
 Ingrese el ancho ASCII: 100
 
 *Resultado:* 
+
+<img width="330" height="492" alt="monalisa" src="https://github.com/user-attachments/assets/24d911ce-0504-4294-975b-71ef0b8ce04d" /> <img width="330" height="492" alt="image" src="https://github.com/user-attachments/assets/1e87e820-0b23-4a80-b5d1-e09dca8a0e15" />
+
 - Archivo TXT con representación ASCII.
 
 ## Licencia
