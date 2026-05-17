@@ -1,4 +1,4 @@
-# Trabajo Práctico 2 — Estilización de Imágenes Digitales
+# Trabajo Práctico 2 — Estilización de Imágenes Digitales. 
 # Conversor de Imágenes a Pixel Art y ASCII Art
 ## Descripción general del trabajo
 
@@ -14,7 +14,8 @@ El programa trabaja procesando los píxeles de la imagen original y aplicando di
 
 Finalmente, el resultado puede guardarse:
 como una nueva imagen .png,
-o como un archivo de texto .txt.
+o como un archivo de texto .txt,
+dependiendo del método elegido.
 
 ## Funciones más importantes
 
@@ -25,11 +26,9 @@ Esta es una de las funciones centrales del programa y se encarga de transformar 
 La función recorre la imagen dividiéndola en bloques cuadrados de píxeles. Para cada bloque:
 1. calcula el color promedio,
 2. reduce la cantidad de tonos posibles,
-3. y reemplaza todos los píxeles del bloque por un único color representativo.
+3. reemplaza todos los píxeles del bloque por un único color representativo.
 
-De esta manera, la imagen pierde detalle y adquiere una apariencia simplificada y pixelada, característica de los videojuegos antiguos.
-
-Además, la función utiliza matrices de NumPy para procesar grandes cantidades de píxeles de manera eficiente, mejorando el rendimiento del programa.
+De esta manera, la imagen pierde detalle y adquiere una apariencia simplificada y pixelada.
 
 ### Función ‘ascii_art()’
 
@@ -38,9 +37,9 @@ Esta función convierte una imagen en una representación hecha completamente co
 Primero, la imagen se transforma a escala de grises para analizar únicamente la intensidad de luz de cada píxel. Luego:
 1. se redimensiona la imagen,
 2. se analiza el brillo de cada píxel,
-3. y cada nivel de intensidad se reemplaza por un carácter específico.
+3. se reemplaza cada nivel de intensidad por un carácter específico.
 
-Los caracteres más “oscuros” representan zonas oscuras de la imagen, mientras que los más livianos representan zonas claras.
+Los caracteres más “oscuros” o densos representan zonas oscuras de la imagen, mientras que los más "livianos" representan zonas claras.
 
 El resultado final es una cadena de texto que, al visualizarse completa, forma una versión textual de la imagen original.
 
@@ -55,7 +54,7 @@ permitir elegir el método de procesamiento,
 ejecutar las funciones correspondientes,
 y guardar el resultado final.
 
-También incluye manejo de errores mediante bloques ‘try-except', evitando que el programa se cierre inesperadamente frente a entradas inválidas o problemas de ejecución.
+También incluye manejo de errores mediante ‘try-except', evitando que el programa detenga su ejecución frente a entradas inválidas o problemas durante el procesamiento.
 
 Esta función actúa como el núcleo organizador del sistema, conectando todas las demás funciones entre sí.
 
