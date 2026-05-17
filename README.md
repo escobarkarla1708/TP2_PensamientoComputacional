@@ -68,10 +68,10 @@ Esta función actúa como el núcleo organizador del sistema, conectando todas l
 ## Ejemplos de uso
 
 ### Ejemplo Pixel Art:
-Ingrese la ruta de la imagen: foto.jpg
-Seleccione el método (pixel/ascii): pixel
-Ingrese el tamaño del bloque: 10
-Ingrese el número de niveles de color: 4
+- Ingrese la ruta de la imagen: monalisa.jpg
+- Seleccione el método (pixel/ascii): pixel
+- Ingrese el tamaño del bloque: 10
+- Ingrese el número de niveles de color: 4
 
 *Resultado:* 
 
@@ -80,9 +80,9 @@ Ingrese el número de niveles de color: 4
 
 ### Ejemplo ASCII Art:
 
-Ingrese la ruta de la imagen: paisaje.png
-Seleccione el método (pixel/ascii): ascii
-Ingrese el ancho ASCII: 100
+- Ingrese la ruta de la imagen: monalisa.jpg
+- Seleccione el método (pixel/ascii): ascii
+- Ingrese el ancho ASCII: 100
 
 *Resultado:* 
 
